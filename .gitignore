@@ -31,3 +31,10 @@ evidence/dashboard.html
 evidence/ptc-lab/work/
 
 evidence/survey-*.json
+
+# OMD edition development/build artifacts
+/node_modules
+/omd/node_modules/
+/omd/lib/
+/omd/*.tgz
+/omd/test-artifacts/

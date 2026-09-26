@@ -1,0 +1,6 @@
+{
+  "repository": "WestFox-AwA/dsh-prompt-optimizer",
+  "commit": "84674b1e6c8a7a032dc390180360469ba35ba71f",
+  "version": "0.7.4",
+  "engine": "Original po06 interpreter, reducer, compiler, pipeline, strategy and read-only tools; bundled from source without rewriting their prompts."
+}
