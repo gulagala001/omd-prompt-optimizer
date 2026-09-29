@@ -16,10 +16,10 @@
 
 ## 安装与启用
 
-优先从 **OMD → 设置 → 推荐插件 → 需求理解 · OMD UI 增强版**手动安装，或下载本仓库 [Release](https://github.com/gulagala001/omd-prompt-optimizer/releases) 中的 `omd-prompt-optimizer-0.1.0.tgz`：
+优先从 **OMD → 设置 → 推荐插件 → 需求理解 · OMD UI 增强版**手动安装，或下载本仓库 [Release](https://github.com/gulagala001/omd-prompt-optimizer/releases) 中的 `omd-prompt-optimizer-0.2.0.tgz`：
 
 ```sh
-dsh plugin --profile YOUR_PROFILE add /path/to/omd-prompt-optimizer-0.1.0.tgz
+dsh plugin --profile YOUR_PROFILE add /path/to/omd-prompt-optimizer-0.2.0.tgz
 ```
 
 按宿主提示重新加载或重启后，打开 **设置 → 需求理解 → 启用需求理解**。只安装不会开启拦截。默认采用“标准 / 审查后发送 / 最近 6 回合 / 不读取项目文件”。

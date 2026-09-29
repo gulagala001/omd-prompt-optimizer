@@ -8,7 +8,8 @@ const response=text=>({delta:{role:'assistant',content:text},finish_reason:'stop
 test('packed plugin in real OMD: default off, native review, context, cancel, themes and disable', {timeout:240000,skip:!checkout?'Set OMD_CHECKOUT for the isolated real-host test':false},async t=>{
   const {frontendFixture,until}=await import(pathToFileURL(join(checkout,'test/fixtures/frontend.mjs')).href);
   const requests=[],main=[];let held=false,release;
-  const packagePath=process.env.OMD_INTENT_PACKAGE||fileURLToPath(new URL('../omd-prompt-optimizer-0.1.0.tgz',import.meta.url));
+  const metadata=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
+  const packagePath=process.env.OMD_INTENT_PACKAGE||fileURLToPath(new URL(`../${metadata.name}-${metadata.version}.tgz`,import.meta.url));
   const f=await frontendFixture(t,{plugins:['file:'+packagePath],modelReply:async payload=>{
     const all=JSON.stringify(payload.messages);
     if(!all.includes('意图补全器')){if(payload.tools?.length)main.push(payload);return undefined;}
