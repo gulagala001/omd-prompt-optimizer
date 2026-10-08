@@ -1,145 +1,46 @@
-# dsh-prompt-optimizer **v0.6.10** · Prompt Optimizer (DSH Web plugin)
+# OMD Prompt Optimizer · Intent Assistant 0.3.0
 
-**English** ｜ [中文](README.md)
+**An independent, optional OMD UI edition. It is not installed by default and remains disabled after installation.**
 
-> **It never rewrites your words.** You type as usual; before you hit send it works out *what this round actually
-> needs* and hands that understanding to the working AI — your original message goes out **byte for byte**,
-> the understanding rides along, every item carries a **verbatim citation**, and each round is **reasoned from
-> scratch** (nothing is inherited from the previous round).
-> Full guide and self-check: [`po06/README.md`](po06/README.md) · manual acceptance: [`po06/HUMAN-TEST.md`](po06/HUMAN-TEST.md)
+This edition uses the interpretation, validation and compilation engine from [WestFox-AwA/dsh-prompt-optimizer](https://github.com/WestFox-AwA/dsh-prompt-optimizer) 0.7.4, by 啃轮胎的西狐 (WestFox-AwA), under the [BSD-3-Clause license](LICENSE). It is not an official upstream release. The fixed upstream source commit is recorded in `omd/UPSTREAM.json` and included in the package.
 
-> ### Install 0.6.10 in 30 seconds
->
-> ```powershell
-> $v = '0.6.10'; $d = "$env:USERPROFILE\Downloads"
-> Invoke-WebRequest "https://github.com/WestFox-AwA/dsh-prompt-optimizer/releases/download/v$v/dsh-external-dsh-po06-$v.tgz" -OutFile "$d\dsh-external-dsh-po06-$v.tgz"
-> Get-Content "$d\SHA256SUMS-$v.txt"     # compare the sha256 with the tgz you just downloaded (same file as on the Release page)
-> dsh --profile po061 --from-default-profile web --dump-config        # a clean profile
-> dsh plugin --profile po061 add "$d\dsh-external-dsh-po06-$v.tgz"    # install
-> dsh --profile po061                                                 # start (prints a tokenized URL)
-> ```
->
-> Afterwards set the **tier** control to `standard` or `heavy` (`off` does not intercept and injects nothing).
-> The long version (4-step self-check, common install failures) is in [`po06/README.md`](po06/README.md).
-> **Do not install it into the profile that carries your 0.5.x**: having both assembled makes the `DOUBLE_INTERCEPT`
-> guard refuse to enable (that is deliberate), and the two **do not share configuration** (0.6's enable intent lives in
-> `<home>/po06.json` and never touches 0.5's `prompt-optimizer.json`).
+[中文使用说明](README.md) · [Detailed behavior and validation scope](omd/README.md)
 
----
+## Install and enable
 
-## The problem it solves
+Version **0.3.0** supports DSH **0.2.0-rc.2** and **0.2.1-alpha.1**. DSH 0.1.7-rc.2 users can use the historical [0.1.0 release](https://github.com/gulagala001/omd-prompt-optimizer/releases/tag/v0.1.0).
 
-Models of this class (v4.1-flash and friends) **don't act unprompted, don't guess, and finish in one pass**:
-anything you leave out that they cannot infer is **necessarily missing**, and anything you write they **will** do.
-So what is missing is never "a prettier prompt" — it is **the bit of context you forgot to say and the model cannot know**.
+Install manually from **OMD → Settings → Recommended plugins → 需求理解 · OMD UI 增强版**, or download [omd-prompt-optimizer-0.3.0.tgz](https://github.com/gulagala001/omd-prompt-optimizer/releases/download/v0.3.0/omd-prompt-optimizer-0.3.0.tgz) from the [0.3.0 release](https://github.com/gulagala001/omd-prompt-optimizer/releases/tag/v0.3.0). Check its SHA-256 against `omd-intent-SHA256SUMS-0.3.0.txt` on the same release page.
 
-This plugin does exactly one thing: **before you send, it fills that gap, and every line it adds can be traced back to
-evidence**. It never writes the downstream's own craft (generic boilerplate, ordinary API usage, best practices,
-teaching) and never writes untargeted verification boilerplate — for this class of model the prompt is not advice
-but an **instruction set**.
+```sh
+dsh plugin --profile YOUR_PROFILE add /path/to/omd-prompt-optimizer-0.3.0.tgz
+```
 
-## How it works (four steps)
+Reload or restart when prompted, then enable **Settings → 需求理解 → 启用需求理解**. Do not install the repository root or `po06/` as this edition. The distribution is built from `omd/`.
 
-1. **Intercept before sending**: your message has not reached the working AI yet (the panel shows "optimizing… N s",
-   and you can hit **Skip and send as-is** at any moment).
-2. **A separate call does the interpretation** (the explainer layer). Its only inputs are **your verbatim message this
-   round** plus **the session context / project files actually read this round**. The output is not a rewrite but a set
-   of items: what you said (with a verbatim quote), how your quality words were read, what you did not say and nobody
-   could know (open items), and facts observed in the material.
-3. **The host validates item by item**: every item must be traceable to a **verbatim source**; anything untraceable is
-   **dropped individually and recorded** — it never masquerades as "you said that".
-4. **Sidecar injection**: your message goes out **unchanged**, and the interpretation rides along as a packet for this
-   round only; when the next round starts, the previous round's items retire wholesale (kept for the record, not deleted).
+## Behavior
 
-**Three invariants** (this is also where it differs from other tools):
+The assistant interprets the current request before sending. You can review or edit the accompanying interpretation, stop it, skip it, or select automatic delivery. Your original text, attachments and native submit metadata pass through DSH's native send entry. The interpretation is a separate accompanying message bound to the current input. It remains in normal session history but is not attached again to later inputs.
 
-| Invariant | Meaning | Not |
-|---|---|---|
-| **No rewriting** | the message dispatched to the working AI is the bytes you wrote | not a prompt rewriter |
-| **Everything cited** | each item maps to a verbatim source, or it is dropped | not free-form completion |
-| **Per-round zero base** | this round's understanding does not depend on the previous round's items | not memory/profiling, not RAG |
+Settings include light/standard/heavy interpretation, review/automatic delivery, session or chosen model, recent 0–10 rounds or readable history, and optional read-only project files. Changing the draft, attachments or settings prevents stale results from sending. Configuration is isolated per DSH_HOME/profile in `omd-intent-assistant.json`.
 
-> **The cost, honestly**: long-lived constraints ("ship a single file", "don't touch other folders") no longer carry
-> across rounds — they must be re-derived from the context each round ⇒ **do not shrink the context window too far**.
-> What you get in return: "something solved two rounds ago is demanded again" cannot happen.
+Disabled mode removes sending/context hooks, cancels outstanding requests and rejects late results. It retains installation files, configuration and the settings/management entry. Disabling does not undo messages already sent, provider costs or previous answers. No additional Bash runtime or work-model tools are included. Avoid enabling both the upstream send interceptor and this assistant, or two automatic optimizers at once.
 
-## What the UI gives you
+## Data and validation
 
-One row in the input area: **Optimization options** (icon + current tier summary), a state dot, and a `?` manual.
-Clicking it opens a restrained card:
+There is no author telemetry. When enabled, your text, selected history and permitted file contents are sent to your configured model provider. History budgets are 12,000 characters for recent rounds and 60,000 for readable history; truncation is disclosed. Extra model calls add latency and cost. Missing provider token usage is displayed as “—”.
 
-| Control | Values | What it does |
-|---|---|---|
-| **Tier** | `off` / `light` / `standard` / `heavy` | tier = **evidence budget**. `off` = no interception, no injection (as if not installed) |
-| **Permission** | `review` / `auto` | review = it shows you what it will inject and lets you edit before sending; auto = it sends as soon as it finishes |
-| **Model** | follow the session model (default) or pick one | which model the explainer layer uses |
-| **Context** | turns `0–10` / `full` | how much history it reads; more is better informed and slower |
-| **Read-only tools** | `on` / `off` (default off) | lets it read files **inside your working directory** to check facts (read-only, no writes, no commands) |
-| **Details** | — | edit the explainer prompt (undo, or restore the built-in one) |
+Offline tests cover disabled lifecycle, cancellation, isolation, verbatim text and attachments, command bypass, submit metadata, stale-input protection, wrapper coexistence and upstream interpretation/validation. Native macOS tests install actual tarballs into isolated stock DSH 0.2.0-rc.2 and 0.2.1-alpha.1 profiles without version exemptions or source links, covering native loading, review/automatic sending, exact image bytes, restart, enable/disable, reinstall and uninstall. OMD integration tests cover read-only tools, light/dark themes and narrow layouts. Model responses are local fixtures. Windows/Linux native desktop behavior and real-provider effectiveness remain unverified.
 
-The intercept overlay has two panes: **thinking** (fixed height, no scrollbar, never truncated, scrollable back) and
-**output** (what will be injected; editable in review mode). Token counts come from the provider's **real reported
-usage**, split into input / output / cache (k/M; `—` when nothing is reported; **never estimated**).
+## Build
 
-**UI language follows DSH**: set DSH to Chinese and everything is Chinese, set it to English and everything is English
-(the `?` manual switches too) — there is **no separate language switch inside the plugin**. Light/dark **follows the DSH
-theme** as well, switching live.
+```sh
+cd omd
+npm ci
+npm run build
+npm test
+npm run test:upstream
+npm pack --ignore-scripts
+```
 
-## FAQ
-
-**How long does it take?** Typically 20–60 s (tier, context and model dependent). That wait *is* the thinking time; hit **Skip and send as-is** whenever you don't want to wait.
-
-**Does it change my message?** No. What gets augmented is the understanding handed to the working AI; the words you send are still yours.
-
-**Can it lose my message?** No. If interpretation fails: in `auto` it sends your original text and says why; in `review` it stops in an error state and waits for you (your message stays in the input box).
-
-**What if it extracts nothing this round?** It **retries once**; if it is still empty it adds an honest "nothing was extracted this round" open item — **every round produces a packet** (no more "thinking finished and there was nothing").
-
-**Does it remember the previous round's goals?** No. Each round is re-derived from *your message this round* plus *the context read this round*; see the invariants above for the cost.
-
-**Will it invent requirements?** No. Only what you explicitly said counts as your requirement, and it must carry a **verbatim quote**; mismatches are dropped, and unsourced items are flagged in red in the UI.
-
-**Does reading project files touch anything?** No: read-only, confined to your working directory, anything outside is refused.
-
-**Turning it off / uninstalling?** Temporarily: set the tier to `off` (no interception, no injection). Fully: remove `@dsh-external/dsh-po06` from the profile's `dsh.profile.bundles` and `dependencies`, restart DSH; its config lives in `<home>/po06.json` and you can delete it.
-
-## Privacy and boundaries
-
-- **Nothing leaves your machine**: no telemetry, no callbacks. All state lives under `<home>/po06-*.json*` and `po06-state/`.
-- **Read-only tools are the only file access**: off by default; when on they are read-only, confined to the working directory, and run no commands.
-- **No unrelated content is injected**: the packet is derived only from this round's message and the context read this round; items whose sources cannot be verified are dropped.
-- **Not enabled by default (deliberately conservative)**: the assembly-time enable gate defaults to `off`. To enable it, write
-  `{"settingsVersion":1,"enabled":true,"rollout":{"mode":"all"}}` to `<home>/po06.json` (for selected sessions only:
-  `{"mode":"allowlist","sessions":["<session id>"]}`). As long as the old plugin is still assembled it refuses to enable with
-  `DOUBLE_INTERCEPT` — having one message processed twice is the worse failure.
-
-## Honest status (please set your expectations here)
-
-- ✅ **Internally self-consistent, with evidence**: **48 suites / 644 tests green** (including package self-sufficiency and
-  documentation-drift gates; plus 231 mutation guards on the release-gate line).
-- 📊 **The author's hands-on observation (not a benchmark)**: testing has mostly been done in a
-  **DeepSeek-V4.1-Flash + PTC + PowerShell** environment. **No professional benchmark has been run**; however, across the
-  usual one-shot tasks and long-task iterations the **practical results are clearly stronger than DeepSeek-V4.1-Flash
-  under the same environment and the same prompt**, and a **small sample** of projects suggests it **may also reduce token
-  consumption and save cost**.
-- ⚠️ **The capability is still experimental** — treat it as something you can install, try, and switch off at any time,
-  **not as an upgrade**.
-- 📌 What `0.6.10` fixes (all real-machine reports): ① "thinking finished but no packet" (empty results are
-  backfilled ⇒ every round yields a packet); ② light mode now drives colours from the theme; ③ UI language follows DSH;
-  ④ the enable decision (`rollout` missing/misspelled no longer silently disables an explicit `enabled:true`);
-  ⑤ data loss where one settings write reset the whole config (UTF-8 BOM read fix). Details: [`CHANGELOG.md`](CHANGELOG.md).
-
-## Versions and evidence
-
-- Changelog: [`CHANGELOG.md`](CHANGELOG.md) ｜ manual acceptance: [`po06/HUMAN-TEST.md`](po06/HUMAN-TEST.md) ｜
-  release log (including every install drill actually run): [`po06/RELEASE-CHECKLIST.md`](po06/RELEASE-CHECKLIST.md)
-- Install and self-check: [`po06/README.md`](po06/README.md) ｜ current Release: **[v0.6.10](https://github.com/WestFox-AwA/dsh-prompt-optimizer/releases/tag/v0.6.10)**
-- Compatibility: `dsh-0.1.6-alpha.1` (`0.1.5-rc.1` also runs) ｜ author: 啃轮胎的西狐
-- **Previous generation (the 0.5 line — still usable, no longer updated)**: a **different package**,
-  `@dsh-external/dsh-prompt-optimizer`, last published `v0.5.0-beta.1`; design and usage in [`SPEC.md`](SPEC.md),
-  historical documentation (including the 0.5 measurements) in **[`README-0.5.en.md`](README-0.5.en.md)** —
-  those numbers belong to **0.5 only** and are not evidence for 0.6.
-
-## License
-
-[BSD-3-Clause](LICENSE) · fully open source; anyone may use and modify it in any way, and suggestions are welcome.
+Native test configuration and exact scope are documented in [omd/README.md](omd/README.md). Source and binary distributions retain the upstream BSD-3-Clause license and attribution.
