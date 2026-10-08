@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { nativeHostFixture, nativeHosts, until } from './fixtures/native-host.mjs';
 
 const enabled = process.env.OMD_NATIVE_MATRIX === '1';
-const packagePath = process.env.OMD_INTENT_PACKAGE;
-const baselinePackage = process.env.OMD_INTENT_BASELINE_PACKAGE;
+const packagePath = process.env.OMD_INTENT_PACKAGE && resolve(process.env.OMD_INTENT_PACKAGE);
+const baselinePackage = process.env.OMD_INTENT_BASELINE_PACKAGE && resolve(process.env.OMD_INTENT_BASELINE_PACKAGE);
 const response = text => ({ delta: { role: 'assistant', content: text }, finish_reason: 'stop' });
 const rawText = payload => payload.messages.filter(m => m.role === 'user').flatMap(m => typeof m.content === 'string' ? [m.content] : (m.content || []).filter(b => b.type === 'text').map(b => b.text)).join('\n');
 
