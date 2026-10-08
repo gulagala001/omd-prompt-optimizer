@@ -3,7 +3,7 @@ import {IntentController} from '../src/client-state.mjs';
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function fixture({auto=false,optimize}={}){
   let state={draft:'原话 {{path}}',draftRev:1,attachmentIds:['image'],occurrences:[],phase:'plain'},prefs={revision:1,config:{enabled:true,permission:auto?'auto':'review'}},calls=0;
-  const sent=[],apiCalls=[],listeners=new Set(),shell={state:{getSnapshot:()=>state},submit(mode){sent.push({mode,...structuredClone(state)});state={...state,draft:'',draftRev:state.draftRev+1};}};
+  const sent=[],apiCalls=[],listeners=new Set(),shell={state:{getSnapshot:()=>state},submit(mode,...args){sent.push({mode,nativeArgs:[mode,...args],...structuredClone(state)});state={...state,draft:'',draftRev:state.draftRev+1};}};
   const original=shell.submit,store={getSnapshot:()=>prefs,subscribe:fn=>{listeners.add(fn);return()=>listeners.delete(fn);},load:async()=>{}};
   const controller=new IntentController({shell,sessionId:'s-one',store,optimize:async(...args)=>{calls++;return optimize?optimize(...args):{token:'one',packet:'理解',items:[],usage:{},warnings:[]};},api:async(path,body)=>{apiCalls.push({path,body});return {ok:true};}});
   return {shell,controller,sent,apiCalls,original,calls:()=>calls,set:patch=>{prefs={...prefs,...patch};listeners.forEach(fn=>fn());},edit:patch=>state={...state,...patch}};
@@ -27,4 +27,13 @@ test('changed attachments or text prevent a stale interpretation from sending',a
 });
 test('other plugin wrappers are not overwritten during disposal',async()=>{
   const f=fixture();f.controller.activate();const ours=f.shell.submit;let other=0;const wrapper=mode=>{other++;return ours(mode);};f.shell.submit=wrapper;f.controller.dispose();assert.equal(f.shell.submit,wrapper);f.shell.submit('queue');assert.equal(other,1);assert.equal(f.sent.length,1);assert.equal(f.calls(),0);
+});
+for(const path of ['bypass','review','auto','skip'])test(`native submit source survives ${path} delivery`,async()=>{
+  const f=fixture({auto:path==='auto'});f.controller.activate();
+  if(path==='bypass')f.edit({draft:'/compact-p'});
+  f.shell.submit('steer','enter');await flush();
+  if(path==='review')await f.controller.accept('reviewed interpretation');
+  if(path==='skip')f.controller.skip();
+  assert.equal(f.sent.length,1);assert.deepEqual(f.sent[0].nativeArgs,['steer','enter']);
+  f.controller.dispose();
 });

@@ -49,18 +49,18 @@ export class IntentController {
   activate(){
     if(this.restore||this.disposed)return;const {shell}=this,owner=this,original=shell.submit,descriptor=Object.getOwnPropertyDescriptor(shell,'submit');
     if(typeof original!=='function')throw Error('当前 DSH 不支持需求理解输入入口');
-    function submit(mode='queue'){
+    function submit(mode='queue',...args){
       const prefs=owner.store.getSnapshot(),input=shell.state.getSnapshot();
-      if(!owner.restore||owner.disposed||!prefs.config.enabled||prefs.saving||input.phase!=='plain'||!input.draft.trim()||/^\s*\//.test(input.draft))return original.call(shell,mode);
-      if(!owner.pending)void owner.run(mode);
+      if(!owner.restore||owner.disposed||!prefs.config.enabled||prefs.saving||input.phase!=='plain'||!input.draft.trim()||/^\s*\//.test(input.draft))return original.call(shell,mode,...args);
+      if(!owner.pending)void owner.run(mode,...args);
     }
-    shell.submit=submit;this.nativeSubmit=mode=>original.call(shell,mode);
+    shell.submit=submit;this.nativeSubmit=(mode,...args)=>original.call(shell,mode,...args);
     const unwatch=this.store.subscribe(()=>{const prefs=this.store.getSnapshot();if(!prefs.config.enabled||prefs.saving||this.pending&&prefs.revision!==this.pending.revision)this.cancel();});
     this.restore=()=>{this.cancel();unwatch();if(shell.submit===submit){if(descriptor)Object.defineProperty(shell,'submit',descriptor);else delete shell.submit;}this.restore=null;};
   }
-  async run(mode='queue'){
+  async run(mode='queue',...args){
     if(this.pending||this.disposed)return;const prefs=this.store.getSnapshot();if(!prefs.config.enabled||prefs.saving)return;
-    const before=capture(this.shell),ticket={requestId:crypto.randomUUID(),controller:new AbortController(),before,mode,revision:prefs.revision};
+    const before=capture(this.shell),ticket={requestId:crypto.randomUUID(),controller:new AbortController(),before,mode,args,revision:prefs.revision};
     this.pending=ticket;this.publish({phase:'optimizing',error:'',reasoning:'',result:null,startedAt:Date.now()});
     try{
       const result=await this.optimize({sessionId:this.sessionId,requestId:ticket.requestId,text:before.text},ticket.controller.signal,value=>{
@@ -80,7 +80,7 @@ export class IntentController {
       await this.api('/stage',{sessionId:this.sessionId,token:ticket.token,text},ticket.controller.signal);
       if(!this.valid(ticket)||!unchanged(this.shell,ticket.before)){this.cancel();return;}
       this.pending=null;this.publish({phase:'idle',result:null,reasoning:'',error:''});
-      await this.nativeSubmit(ticket.mode);
+      await this.nativeSubmit(ticket.mode,...ticket.args);
     }catch(error){
       void this.api('/discard',{sessionId:this.sessionId,token:ticket.token,requestId:ticket.requestId}).catch(()=>{});
       if(!ticket.controller.signal.aborted)this.publish({phase:'error',error:error.message});
@@ -91,6 +91,6 @@ export class IntentController {
     if(ticket){ticket.controller.abort();void this.api('/discard',{sessionId:this.sessionId,token:ticket.token,requestId:ticket.requestId}).catch(()=>{});}
     this.publish({phase:'idle',result:null,reasoning:'',error:''});
   }
-  skip(){const ticket=this.pending;if(!ticket)return;const safe=unchanged(this.shell,ticket.before);this.cancel();if(safe)this.nativeSubmit(ticket.mode);else this.publish({phase:'error',error:'草稿或附件已变化，未发送。请直接点击宿主发送。'});}
+  skip(){const ticket=this.pending;if(!ticket)return;const safe=unchanged(this.shell,ticket.before);this.cancel();if(safe)this.nativeSubmit(ticket.mode,...ticket.args);else this.publish({phase:'error',error:'草稿或附件已变化，未发送。请直接点击宿主发送。'});}
   dispose(){this.restore?.();this.disposed=true;this.listeners.clear();}
 }
