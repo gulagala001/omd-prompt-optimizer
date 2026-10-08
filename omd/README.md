@@ -4,7 +4,15 @@
 
 本版适配 DSH `0.2.0-rc.2` 和 `0.2.1-alpha.1`；旧 DSH `0.1.7-rc.2` 环境继续使用本组件 `0.1.0`。
 
-## 使用
+## 安装与使用
+
+从 [0.3.0 Release](https://github.com/gulagala001/omd-prompt-optimizer/releases/tag/v0.3.0) 下载 [omd-prompt-optimizer-0.3.0.tgz](https://github.com/gulagala001/omd-prompt-optimizer/releases/download/v0.3.0/omd-prompt-optimizer-0.3.0.tgz)，使用同页 `omd-intent-SHA256SUMS-0.3.0.txt` 核对 SHA-256，再安装到目标 profile：
+
+```sh
+dsh plugin --profile YOUR_PROFILE add /path/to/omd-prompt-optimizer-0.3.0.tgz
+```
+
+也可从 OMD 设置的推荐插件入口手动安装。不要将仓库根目录或 `po06/` 作为本增强版安装。按宿主提示重新加载或重启后启用。
 
 手动安装后，在“设置 → 需求理解”开启。默认关闭，不拦截发送，不注入上下文，不注册任何工作模型工具。开启后，输入框出现一个紧凑的“需求理解”入口；发送前先生成解释，默认由你审查，再采用并发送原话。
 

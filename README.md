@@ -16,11 +16,15 @@
 
 ## 安装与启用
 
-优先从 **OMD → 设置 → 推荐插件 → 需求理解 · OMD UI 增强版**手动安装，或下载本仓库 [Release](https://github.com/gulagala001/omd-prompt-optimizer/releases) 中的 `omd-prompt-optimizer-0.2.0.tgz`：
+当前发行版 **0.3.0** 支持 DSH **0.2.0-rc.2** 和 **0.2.1-alpha.1**。DSH 0.1.7-rc.2 使用历史发行 [0.1.0](https://github.com/gulagala001/omd-prompt-optimizer/releases/tag/v0.1.0)。
+
+优先从 **OMD → 设置 → 推荐插件 → 需求理解 · OMD UI 增强版**手动安装，或下载本仓库 [0.3.0 Release](https://github.com/gulagala001/omd-prompt-optimizer/releases/tag/v0.3.0) 中的 [omd-prompt-optimizer-0.3.0.tgz](https://github.com/gulagala001/omd-prompt-optimizer/releases/download/v0.3.0/omd-prompt-optimizer-0.3.0.tgz)：
 
 ```sh
-dsh plugin --profile YOUR_PROFILE add /path/to/omd-prompt-optimizer-0.2.0.tgz
+dsh plugin --profile YOUR_PROFILE add /path/to/omd-prompt-optimizer-0.3.0.tgz
 ```
+
+安装前可用 Release 同页的 `omd-intent-SHA256SUMS-0.3.0.txt` 核对安装包 SHA-256。
 
 按宿主提示重新加载或重启后，打开 **设置 → 需求理解 → 启用需求理解**。只安装不会开启拦截。默认采用“标准 / 审查后发送 / 最近 6 回合 / 不读取项目文件”。
 
